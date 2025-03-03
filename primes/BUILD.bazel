@@ -1,0 +1,18 @@
+load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
+
+cc_library(
+    name = "primes",
+    srcs = ["primes.cc", "primes_worker.h", "ring_buffer.h"],
+    hdrs = ["primes.h"]
+)
+
+cc_binary(
+    name = "primes_bin",
+    srcs = ["main.cc"],
+    deps = [":primes"]
+)
+
+wasm_cc_binary(
+    name = "primes_bin_wasm",
+    cc_target = ":primes_bin"
+)
