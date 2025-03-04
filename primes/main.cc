@@ -1,5 +1,6 @@
 #include <functional>
 #include <iostream>
+#include <thread>
 
 #include "emscripten.h"
 #include "primes.h"
@@ -14,14 +15,21 @@ int main() {
 }
 
 void callback_and_sleep(PrimesCallback callback, int prime) {
-  (*callback)(prime);
-  emscripten_sleep(0);
+  if (callback) {
+    (*callback)(prime);
+  }
+  // emscripten_sleep(0);
 }
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
 void find_primes_js(int limit, int threads, PrimesCallback callback) {
   using namespace std::placeholders;
-  find_primes(limit, threads, std::bind(callback_and_sleep, callback, _1));
+  std::thread processing_thread(find_primes, limit, threads,
+                                std::bind(callback_and_sleep, callback, _1));
+
+  while (pthread_tryjoin_np(processing_thread.native_handle(), nullptr)) {
+    emscripten_sleep(0);
+  };
 }
 }

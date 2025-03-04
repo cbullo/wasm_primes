@@ -4,16 +4,16 @@ cc_library(
     name = "primes",
     srcs = ["primes.cc", "primes_worker.h", "ring_buffer.h"],
     hdrs = ["primes.h"],
-    cxxopts = ["-g", "-sWASM_WORKERS", "-pthread", "-sASSERTIONS=2", "-sEXCEPTION_DEBUG", "-sALLOW_BLOCKING_ON_MAIN_THREAD", "-sASYNCIFY"],
-    linkopts = ["-sPTHREAD_POOL_SIZE_STRICT=10", "-sPROXY_TO_PTHREAD", "-sWASM_WORKERS", "-pthread", "-sASSERTIONS=2", "-sEXCEPTION_DEBUG=1", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY", "-sEXPORTED_RUNTIME_METHODS=['addFunction']", "-sALLOW_TABLE_GROWTH"]
+    cxxopts = ["-O3", "-sWASM_WORKERS", "-pthread", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY"],
+    linkopts = ["-sPTHREAD_POOL_SIZE_STRICT=16", "-sWASM_WORKERS", "-pthread", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY", "-sEXPORTED_RUNTIME_METHODS=['addFunction']", "-sALLOW_TABLE_GROWTH"]
 )
 
 cc_binary(
     name = "primes_bin",
     srcs = ["main.cc"],
     deps = [":primes"],
-    cxxopts = ["-g", "-sWASM_WORKERS", "-pthread", "-sASSERTIONS=2", "-sINVOKE_RUN=0", "-sEXCEPTION_DEBUG", "-sALLOW_BLOCKING_ON_MAIN_THREAD", "-sASYNCIFY"],
-    linkopts = ["-sPTHREAD_POOL_SIZE_STRICT=10", "-sPROXY_TO_PTHREAD", "-sWASM_WORKERS", "-pthread", "-sASSERTIONS=2", "-sINVOKE_RUN=0", "-sEXCEPTION_DEBUG=1", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY", "-sEXPORTED_RUNTIME_METHODS=['addFunction']", "-sALLOW_TABLE_GROWTH"]
+    cxxopts = ["-O3", "-sWASM_WORKERS", "-pthread", "-sINVOKE_RUN=0", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY"],
+    linkopts = ["-sPTHREAD_POOL_SIZE_STRICT=16", "-sWASM_WORKERS", "-pthread", "-sINVOKE_RUN=0", "-sALLOW_BLOCKING_ON_MAIN_THREAD=0", "-sASYNCIFY", "-sEXPORTED_RUNTIME_METHODS=['addFunction']", "-sALLOW_TABLE_GROWTH"]
 )
 
 wasm_cc_binary(

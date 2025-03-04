@@ -8,26 +8,27 @@
 #include "emscripten.h"
 #include "primes_worker.h"
 
-std::vector<std::thread> spawn_workers(
-    int number_of_workers, int limit, std::atomic<int> &next_value,
-    std::vector<std::atomic<StorageType>> &primes_storage,
-    RingBuffer<int> &output_buffer) {
-  std::vector<std::thread> thread_pool;
+void spawn_workers(int number_of_workers, int limit,
+                   std::atomic<int> &next_value,
+                   std::vector<std::atomic<StorageType>> &primes_storage,
+                   RingBuffer<int> &output_buffer) {
+  // std::vector<std::thread> thread_pool;
   for (int i = 0; i < number_of_workers; ++i) {
-    thread_pool.push_back(
-        std::thread(primes_worker, limit, std::ref(next_value),
-                    std::ref(primes_storage), std::ref(output_buffer)));
+    // thread_pool.push_back(
+    std::thread(primes_worker, limit, std::ref(next_value),
+                std::ref(primes_storage), std::ref(output_buffer))
+        .detach();
   }
 
-  emscripten_sleep(0);
-  return thread_pool;
+  emscripten_sleep(100);
+  // return thread_pool;
 }
 
-void join_workers(std::vector<std::thread> &thread_pool) {
-  for (auto &thread : thread_pool) {
-    thread.join();
-  }
-}
+// void join_workers(std::vector<std::thread> &thread_pool) {
+//   for (auto &thread : thread_pool) {
+//     thread.join();
+//   }
+// }
 
 void find_primes(int limit, int number_of_workers,
                  std::function<void(int)> prime_callback) {
@@ -39,8 +40,8 @@ void find_primes(int limit, int number_of_workers,
   RingBuffer<int> output_buffer;
   std::deque<int> primes_queue;
 
-  auto thread_pool = spawn_workers(number_of_workers, limit, next_value,
-                                   primes_storage, output_buffer);
+  spawn_workers(number_of_workers, limit, next_value, primes_storage,
+                output_buffer);
 
   int finished_workers = 0;
   int last_processed = 2;
@@ -66,7 +67,7 @@ void find_primes(int limit, int number_of_workers,
         int bit_index = last_processed % (8 * sizeof(StorageType));
 
         if (!(primes_storage[storage_index] & (1 << bit_index))) {
-          //std::cout << "FOUND PRIME " << last_processed << std::endl;
+          // std::cout << "FOUND PRIME " << last_processed << std::endl;
           prime_callback(last_processed);
         }
         ++last_processed;
@@ -80,5 +81,5 @@ void find_primes(int limit, int number_of_workers,
     // std::cout << next_value << " " << finished_workers << std::endl;
   }
 
-  join_workers(thread_pool);
+  //join_workers(thread_pool);
 }
