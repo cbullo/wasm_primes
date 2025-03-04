@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 
+#include "emscripten.h"
 #include "primes_worker.h"
 
 std::vector<std::thread> spawn_workers(
@@ -18,6 +19,7 @@ std::vector<std::thread> spawn_workers(
                     std::ref(primes_storage), std::ref(output_buffer)));
   }
 
+  emscripten_sleep(0);
   return thread_pool;
 }
 
@@ -30,6 +32,7 @@ void join_workers(std::vector<std::thread> &thread_pool) {
 void find_primes(int limit, int number_of_workers,
                  std::function<void(int)> prime_callback) {
   int array_size = limit / sizeof(StorageType) + 1;
+  static_assert(std::atomic<StorageType>::is_always_lock_free);
   std::vector<std::atomic<StorageType>> primes_storage(array_size);
   std::atomic<int> next_value = 2;
 
@@ -46,7 +49,7 @@ void find_primes(int limit, int number_of_workers,
     int candidate_prime;
     // Empty the buffer as quickly as possible.
     while (output_buffer.Pop(candidate_prime)) {
-      //std::cout << "candidate " << candidate_prime << std::endl;
+      // std::cout << "candidate " << candidate_prime << std::endl;
       if (candidate_prime == kFinished) {
         ++finished_workers;
       } else {
@@ -63,6 +66,7 @@ void find_primes(int limit, int number_of_workers,
         int bit_index = last_processed % (8 * sizeof(StorageType));
 
         if (!(primes_storage[storage_index] & (1 << bit_index))) {
+          //std::cout << "FOUND PRIME " << last_processed << std::endl;
           prime_callback(last_processed);
         }
         ++last_processed;

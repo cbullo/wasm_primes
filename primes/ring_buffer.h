@@ -9,6 +9,7 @@ class RingBuffer {
 
  private:
   std::array<T, N> storage_;
+  static_assert(std::atomic<IndexType>::is_always_lock_free);
   std::atomic<IndexType> head_ = 0;
   std::atomic<IndexType> tail_ = 0;
   std::atomic_flag writing_flag_ = false;

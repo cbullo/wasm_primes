@@ -1,4 +1,5 @@
 #include <chrono>
+#include <iostream>
 
 #include "ring_buffer.h"
 
@@ -8,6 +9,7 @@ const int kFinished = -1;
 void primes_worker(int limit, std::atomic<int>& next_value,
                    std::vector<std::atomic<StorageType>>& primes_storage,
                    RingBuffer<int>& output_buffer) {
+  std::cout << "WORKDER RUNNING" << std::endl;
   while (true) {
     auto value = next_value.fetch_add(1);
     if (value >= limit) {
