@@ -37,6 +37,7 @@
             from {
                 transform: translateY(0px);
             }
+
             to {
                 transform: translateY(-20px);
             }
@@ -46,6 +47,7 @@
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
@@ -122,10 +124,10 @@
             <button id="benchmarkButton" onclick="benchmarkPerformance()">Benchmark</button>
         </div>
     </div>
-    
+
     <div id="resultList" class="result-container"></div>
     <textarea id="benchmarkResults" rows="4" cols="50" readonly></textarea>
-    
+
     <script>
         let primesModule;
 
@@ -164,9 +166,9 @@
                     resultList.appendChild(div);
                 }, 'vi'
             );
-            
+
             await primesModule._find_primes_js(param, threads, callback);
-            
+
             button.disabled = false;
         }
 
@@ -179,7 +181,7 @@
 
             for (let threads of threadCounts) {
                 const startTime = performance.now();
-                await primesModule._find_primes_js(param, threads);
+                await primesModule._find_primes_js(param, threads, () => { });
                 const endTime = performance.now();
                 results += `Threads: ${threads}, Time: ${(endTime - startTime).toFixed(2)} ms\n`;
             }

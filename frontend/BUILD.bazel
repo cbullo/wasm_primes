@@ -7,7 +7,14 @@ statikk_bin.statikk_binary(
 
 js_run_devserver(
     name = "serve",
-    args = ["--port", "8000", "--coi"],
-    data = ["index.html", "//primes:primes_bin_wasm"],
+    args = [
+        "--port",
+        "8000",
+        "--coi",
+    ],
+    data = [
+        "index.html",
+        "//primes:primes_bin_wasm",
+    ],
     tool = ":statikk",
 )

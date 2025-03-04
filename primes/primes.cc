@@ -20,8 +20,8 @@ void spawn_workers(int number_of_workers, int limit,
         .detach();
   }
 
-  emscripten_sleep(100);
-  // return thread_pool;
+  //TODO: Move to a higher-level
+  emscripten_sleep(1);
 }
 
 // void join_workers(std::vector<std::thread> &thread_pool) {
@@ -75,6 +75,7 @@ void find_primes(int limit, int number_of_workers,
     }
 
     if (finished_workers == number_of_workers && primes_queue.empty()) {
+      prime_callback(-1);
       break;
     }
 
