@@ -1,7 +1,6 @@
 #include <atomic>
 #include <cmath>
 #include <functional>
-#include <iostream>
 #include <mutex>
 #include <thread>
 
@@ -10,23 +9,11 @@
 
 typedef void (*PrimesCallback)(int prime);
 
-int main() {
-  // find_primes(30000000, 16, [](int prime) {
-  //   std::cout << "Found prime: " << prime << std::endl;
-  //   //std::cout.flush();
-  // });
-}
-
-// void callback_and_sleep(PrimesCallback callback, int prime) {
-//   if (callback) {
-//     (*callback)(prime);
-//   }
-//   // emscripten_sleep(0);
-// }
+int main() { return 0; }
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
-void find_primes_js(int limit, int threads, PrimesCallback callback) {
+void findPrimesJS(int limit, int threads, PrimesCallback callback) {
   using namespace std::placeholders;
   const int kMinReportSize = 256;
 
@@ -57,7 +44,7 @@ void find_primes_js(int limit, int threads, PrimesCallback callback) {
     }
   };
 
-  std::thread processing_thread(find_primes, limit, threads,
+  std::thread processing_thread(FindPrimes, limit, threads,
                                 std::bind(internal_callback, _1));
   processing_thread.detach();
 

@@ -1,14 +1,17 @@
 #include <chrono>
-#include <iostream>
 
 #include "ring_buffer.h"
 
 using StorageType = unsigned int;
 const int kFinished = -1;
 
-void primes_worker(int limit, std::atomic<int>& next_value,
-                   std::vector<std::atomic<StorageType>>& primes_storage,
-                   RingBuffer<int>& output_buffer) {
+inline int StorageIndex(int value) { return value / (sizeof(StorageType) * 8); }
+
+inline int BitIndex(int value) { return value % (sizeof(StorageType) * 8); }
+
+void PrimesWorker(int limit, std::atomic<int>& next_value,
+                  std::vector<std::atomic<StorageType>>& primes_storage,
+                  RingBuffer<int>& output_buffer) {
   while (true) {
     auto value = next_value.fetch_add(1);
     if (value >= limit) {
@@ -17,8 +20,8 @@ void primes_worker(int limit, std::atomic<int>& next_value,
       return;
     }
 
-    int storage_index = value / (sizeof(StorageType) * 8);
-    int bit_index = value % (sizeof(StorageType) * 8);
+    int storage_index = StorageIndex(value);
+    int bit_index = BitIndex(value);
     auto prev_value = primes_storage[storage_index].load();
     if (prev_value & (1 << bit_index)) {
       // The value has already been marked by a different thread. Thus it's not
@@ -27,8 +30,8 @@ void primes_worker(int limit, std::atomic<int>& next_value,
     }
 
     for (auto i = 2 * value; i < limit; i += value) {
-      int storage_index = i / (sizeof(StorageType) * 8);
-      int bit_index = i % (sizeof(StorageType) * 8);
+      int storage_index = StorageIndex(i);
+      int bit_index = BitIndex(i);
       prev_value = primes_storage[storage_index].fetch_or(1 << bit_index);
     }
 

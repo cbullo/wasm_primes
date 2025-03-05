@@ -121,12 +121,10 @@
             <label for="threads">Threads count:</label>
             <input type="number" id="threads" placeholder="Enter thread count" value="1" />
             <button id="generateButton" onclick="generateNumbers()">Generate</button>
-            <button id="benchmarkButton" onclick="benchmarkPerformance()">Benchmark</button>
         </div>
     </div>
 
     <div id="resultList" class="result-container"></div>
-    <textarea id="benchmarkResults" rows="4" cols="50" readonly></textarea>
 
     <script>
         let primesModule;
@@ -167,27 +165,8 @@
                 }, 'vi'
             );
 
-            await primesModule._find_primes_js(param, threads, callback);
-
+            await primesModule._findPrimesJS(param, threads, callback);
             button.disabled = false;
-        }
-
-        async function benchmarkPerformance() {
-            const benchmarkButton = document.getElementById("benchmarkButton");
-            benchmarkButton.disabled = true;
-            const param = parseInt(document.getElementById("param").value, 10);
-            const threadCounts = [1, 2, 4, 8];
-            let results = "Benchmark Results:\n";
-
-            for (let threads of threadCounts) {
-                const startTime = performance.now();
-                await primesModule._find_primes_js(param, threads, () => { });
-                const endTime = performance.now();
-                results += `Threads: ${threads}, Time: ${(endTime - startTime).toFixed(2)} ms\n`;
-            }
-
-            document.getElementById("benchmarkResults").value = results;
-            benchmarkButton.disabled = false;
         }
     </script>
 </body>

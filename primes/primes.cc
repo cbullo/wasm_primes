@@ -1,37 +1,35 @@
 #include <atomic>
 #include <deque>
 #include <functional>
-#include <iostream>
 #include <thread>
 #include <vector>
 
+// TODO: Get rid of Emscripten here
+#ifdef __EMSCRIPTEN__
 #include "emscripten.h"
+#endif
 #include "primes_worker.h"
 
-void spawn_workers(int number_of_workers, int limit,
-                   std::atomic<int> &next_value,
-                   std::vector<std::atomic<StorageType>> &primes_storage,
-                   RingBuffer<int> &output_buffer) {
-  // std::vector<std::thread> thread_pool;
+void SpawnWorkers(int number_of_workers, int limit,
+                  std::atomic<int> &next_value,
+                  std::vector<std::atomic<StorageType>> &primes_storage,
+                  RingBuffer<int> &output_buffer) {
   for (int i = 0; i < number_of_workers; ++i) {
-    // thread_pool.push_back(
-    std::thread(primes_worker, limit, std::ref(next_value),
+    std::thread(PrimesWorker, limit, std::ref(next_value),
                 std::ref(primes_storage), std::ref(output_buffer))
         .detach();
   }
 
-  //TODO: Move to a higher-level
+  // TODO: Move to a higher-level
+#ifdef __EMSCRIPTEN__
+  // Emscripten is not POSIX compatible - execution needs to return to the main
+  // loop for the threads to actually start.
   emscripten_sleep(1);
+#endif
 }
 
-// void join_workers(std::vector<std::thread> &thread_pool) {
-//   for (auto &thread : thread_pool) {
-//     thread.join();
-//   }
-// }
-
-void find_primes(int limit, int number_of_workers,
-                 std::function<void(int)> prime_callback) {
+void FindPrimes(int limit, int number_of_workers,
+                std::function<void(int)> prime_callback) {
   int array_size = limit / sizeof(StorageType) + 1;
   static_assert(std::atomic<StorageType>::is_always_lock_free);
   std::vector<std::atomic<StorageType>> primes_storage(array_size);
@@ -40,8 +38,8 @@ void find_primes(int limit, int number_of_workers,
   RingBuffer<int> output_buffer;
   std::deque<int> primes_queue;
 
-  spawn_workers(number_of_workers, limit, next_value, primes_storage,
-                output_buffer);
+  SpawnWorkers(number_of_workers, limit, next_value, primes_storage,
+               output_buffer);
 
   int finished_workers = 0;
   int last_processed = 2;
@@ -50,7 +48,6 @@ void find_primes(int limit, int number_of_workers,
     int candidate_prime;
     // Empty the buffer as quickly as possible.
     while (output_buffer.Pop(candidate_prime)) {
-      // std::cout << "candidate " << candidate_prime << std::endl;
       if (candidate_prime == kFinished) {
         ++finished_workers;
       } else {
@@ -63,11 +60,10 @@ void find_primes(int limit, int number_of_workers,
       primes_queue.pop_front();
 
       while (last_processed <= candidate_prime) {
-        int storage_index = last_processed / (8 * sizeof(StorageType));
-        int bit_index = last_processed % (8 * sizeof(StorageType));
+        int storage_index = StorageIndex(last_processed);
+        int bit_index = BitIndex(last_processed);
 
         if (!(primes_storage[storage_index] & (1 << bit_index))) {
-          // std::cout << "FOUND PRIME " << last_processed << std::endl;
           prime_callback(last_processed);
         }
         ++last_processed;
@@ -78,9 +74,5 @@ void find_primes(int limit, int number_of_workers,
       prime_callback(-1);
       break;
     }
-
-    // std::cout << next_value << " " << finished_workers << std::endl;
   }
-
-  //join_workers(thread_pool);
 }

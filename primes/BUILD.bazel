@@ -1,18 +1,14 @@
 load("@emsdk//emscripten_toolchain:wasm_rules.bzl", "wasm_cc_binary")
 
-COMPILER_FLAGS = [
+EM_COMPILER_FLAGS = [
     #"-O0",
     "-O3",
     "-sWASM_WORKERS",
     "-pthread",
-    "-sALLOW_BLOCKING_ON_MAIN_THREAD=0",
-    "-sASYNCIFY",
-    #"-sASSERTIONS=2",
     #"-g",
-    #"-sEXCEPTION_DEBUG=1"
 ]
 
-LINKER_FLAGS = [
+EM_LINKER_FLAGS = [
     #"-O0",
     "-O3",
     "-sPTHREAD_POOL_SIZE=16",
@@ -35,16 +31,46 @@ cc_library(
         "ring_buffer.h",
     ],
     hdrs = ["primes.h"],
-    cxxopts = COMPILER_FLAGS,
-    linkopts = LINKER_FLAGS,
+    cxxopts = select({
+        "@platforms//cpu:wasm32": EM_COMPILER_FLAGS,
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        "@platforms//cpu:wasm32": EM_LINKER_FLAGS,
+        "//conditions:default": [],
+    }),
 )
 
 cc_binary(
     name = "primes_bin",
     srcs = ["main.cc"],
-    cxxopts = COMPILER_FLAGS,
-    linkopts = LINKER_FLAGS,
+    cxxopts = select({
+        "@platforms//cpu:wasm32": EM_COMPILER_FLAGS,
+        "//conditions:default": [],
+    }),
+    linkopts = select({
+        "@platforms//cpu:wasm32": EM_LINKER_FLAGS,
+        "//conditions:default": [],
+    }),
     deps = [":primes"],
+)
+
+cc_test(
+    name = "primes_test",
+    srcs = ["test.cc"],
+    deps = [
+        ":primes",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "primes_benchmark",
+    srcs = ["benchmark.cc"],
+    deps = [
+        ":primes",
+    ],
 )
 
 wasm_cc_binary(
