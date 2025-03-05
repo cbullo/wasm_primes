@@ -41,6 +41,7 @@ cc_library(
     }),
 )
 
+# This target is only intended for WASM
 cc_binary(
     name = "primes_bin",
     srcs = ["main.cc"],
@@ -52,6 +53,7 @@ cc_binary(
         "@platforms//cpu:wasm32": EM_LINKER_FLAGS,
         "//conditions:default": [],
     }),
+    target_compatible_with = ["@platforms//cpu:wasm32"],
     deps = [":primes"],
 )
 
