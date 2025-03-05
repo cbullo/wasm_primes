@@ -1,6 +1,6 @@
 # Installation
 ## Prerequisites
-- Bazel 7.5.0 (node: there's a compatibility issue with Bazel 8.x)
+- Bazel 7.5.0 (note: there's a compatibility issue with Bazel 8.x)
 ## Steps
 - Clone the repository
 - Run this command from the root of the repo:
