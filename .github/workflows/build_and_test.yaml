@@ -10,6 +10,6 @@ jobs:
       - name: test
         run: bazel test //...
       - name: benchmark
-        run: bazel run //primes:benchmark
+        run: bazel run //primes:primes_benchmark
 
       
